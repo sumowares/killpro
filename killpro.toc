@@ -1,0 +1,15 @@
+## Interface 11200
+## Title: Killpro
+## Notes: A killing blow addon, used for tracking all kills. Use /kpro in-game for options.
+## Author: Sleepybear360
+## Version: 0.1
+## SavedVariables: kpDBv2
+## SavedVariablesPerCharacter: kpDBPCv2
+## X-Category: Interface Enhancements
+
+## OptionalDeps: Ace2
+## X-Embeds: Ace2
+
+embeds.xml
+
+killpro.lua
