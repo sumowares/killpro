@@ -2,7 +2,7 @@
 ## Title: Killpro
 ## Notes: A killing blow addon, used for tracking all kills. Use /kpro in-game for options.
 ## Author: Sleepybear360
-## Version: 0.1
+## Version: ALPHA 0.5
 ## SavedVariables: kpDBv2
 ## SavedVariablesPerCharacter: kpDBPCv2
 ## X-Category: Interface Enhancements
