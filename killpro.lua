@@ -14,7 +14,8 @@ local incombat = false;
 local root_sound_path = "Interface\\AddOns\\killpro\\audio\\";
 local syst_sound_path = "sys\\";
 local pack_sound_path = "packs\\";
-local ozone = "";
+local ozone = "Startup";
+local loaded = 0;
 
 --local logpve = true;
 local logpvp = true;
@@ -48,22 +49,6 @@ local options = {
 					kp:printPos()
 				   end
 		},
-		--pvekills = {
-		--	type = 'execute',
-		--	name = 'View current PvE kills.',
-		--	desc = 'View how many enemies killed for current session/zone.',
-		--	func = function()
-		--			kp:getPvEKills()
-		--		   end
-		--},
-		--pvestreak= {
-		--	type = 'execute',
-		--	name = 'View PvE streak.',
-		--	desc = 'View statistical information pertaining to PvE kill streak.',
-		--	func = function()
-		--		    kp:getPvEStreak()
-		--		   end
-		--},
 		pvpkills = {
 			type = 'execute',
 			name = 'View current PvP kills.',
@@ -88,15 +73,6 @@ local options = {
 					kp:resetPvPKills()
 				   end
 		},
-		--resetpve = {
-		--	type = 'execute',
-		--	name = 'Reset PvE kills.',
-		--	desc = 'Reset your PvE kills.',
-		--	desc = 'Resets your PvE kills to zero.',
-		--	func = function()
-		--			kp:resetPvEKills()
-		--	       end
-		--},
 		resetall = {
 			type = 'execute',
 			name = 'Reset all kills.',
@@ -105,14 +81,6 @@ local options = {
 					kp:resetAllKills()
 			       end
 		},
-		--pvesnaps = {
-		--	type = 'text',
-		--	name = 'PvE snaps.',
-		--	desc = 'Use <on/off> to take screenshots of PvE kills.',
-		--	usage = '<on/off>',
-		--	get =   "getPvESnap",
-		--	set =  "setPvESnap",
-		--},
 		pvpsnaps = {
 			type = 'text',
 			name = 'PvP snaps.',
@@ -152,8 +120,6 @@ kp = AceLibrary("AceAddon-2.0"):new("AceConsole-2.0", "AceEvent-2.0", "AceDB-2.0
 kp:RegisterChatCommand({"/killpro"}, options)
 kp:RegisterDB("kpDBv2", "kpDBPCv2");
 
-deformat = AceLibrary("Deformat-2.0");
-
 function kp:OnEnable()
 	self:RegisterEvent("PLAYER_DEAD", "DeathHandler");
 	self:RegisterEvent("PLAYER_LOGOUT", "OnLogout");
@@ -164,7 +130,7 @@ function kp:OnEnable()
 	self:RegisterEvent("PLAYER_UNGHOST", "resetAlive");
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZoneHandler");
 	
-	kp:Print("Registered events with Warcraft API, addon is now active.");
+	kp:Print("Killpro is now active.");
 end
 
 function kp:OnInitialize()
@@ -174,9 +140,7 @@ function kp:OnInitialize()
 end
 
 function kp:OnLogout()
-	--self.db.profile.pvestreak = 0;
 	self.db.profile.pvpstreak = 0;
-	--self.db.profile.pvekills = 0;
 	self.db.profile.pvpkills = 0;
 end
 
@@ -196,6 +160,10 @@ kp:RegisterDefaults("profile", {
 });
 
 function kp:resetAlive()
+	if (self.db.profile.isdebug == "on") then
+		kp:Print("Received message that you are back from the dead.");
+	end
+	
 	isplayerdead = false;
 end
 
@@ -223,14 +191,6 @@ function kp:setSMute(value)
 	self.db.profile.mute = value;
 end
 
---function kp:getPvESnap()
---	return self.db.profile.pvesnap;
---end
-
---function kp:setPvESnap(value)
---	self.db.profile.pvesnap = value;
---end
-
 function kp:getPvPSnap()
 	return self.db.profile.pvpsnap;
 end
@@ -238,14 +198,6 @@ end
 function kp:setPvPSnap(value)
 	self.db.profile.pvpsnap = value;
 end
-
---function kp:getPvEKills()
---	kp:Print("You have killed " .. self.db.profile.pvekills .. " this session/zone.");
---end
-
---function kp:getPvEStreak()
---	kp:Print("Your current streak is " .. self.db.profile.pvestreak .. " this session, your highest streak is " .. self.db.profile.hspve .. "!");
---end
 
 function kp:getPvPKills()
 	kp:Print("You have killed " .. self.db.profile.pvpkills .. " this session/zone.");
@@ -257,7 +209,6 @@ end
 
 function kp:DeathHandler()
 	isplayerdead = true;
-	--self.db.profile.pvestreak = 0;
 	self.db.profile.pvpstreak = 0;
 	
 	kp:audioPlayer(root_sound_path .. syst_sound_path .. "self_death.ogg");
@@ -287,30 +238,25 @@ function kp:CombatEnd()
 		kp:audioPlayer(root_sound_path .. syst_sound_path .. "self_combat_end.ogg");
 	end
 	
---	logpve = true;
 	logpvp = true;
 end
 
 function kp:ZoneHandler()
+	if (loaded == 0) then loaded = loaded + 1; return; end;
 	
 	kp:Print("Summary for " .. ozone .. ".");
 	kp:Print("==================================");
---	kp:Print("Total PvE Kills: " .. self.db.profile.pvekills);
---	kp:Print("PvE Kill Streak:" .. self.db.profile.pvpstreak);
 	kp:Print("Total PvP Kills:" .. self.db.profile.pvpkills);
 	kp:Print("PvP Kill Streak:" .. self.db.profile.pvpstreak);
 	
 	self.db.profile.pvpkills = 0;
 	self.db.profile.pvpstreak = 0;
---	self.db.profile.pvekills = 0;
---	self.db.profile.pvestreak = 0;
 	
 	kp:Print("Zone has changed from " .. ozone .. " to " .. GetZoneText() .. " killing streak and count has been reset.");
 	ozone = GetZoneText();
 end
 
 function kp:testKill()
-	kp:Print(deformat("", UNITDIESOTHER));
 	kp:audioPlayer(root_sound_path .. syst_sound_path .. "fear.ogg");
 	kp:messageHud("This is a test.");
 end
@@ -323,21 +269,10 @@ function kp:resetPvPKills()
 	kp:Print("Reset all PvP type counters.");
 end
 
---function kp:resetPvEKills()
---	self.db.profile.pvekills = 0;
---	self.db.profile.pvestreak = 0;
---	self.profile.hspve = 0;
---	
---	kp:Print("Reset all PvE type counters.");
---end
-
 function kp:resetAllKills()
 	self.db.profile.pvpkills = 0;
 	self.db.profile.pvpstreak = 0;
 	self.db.profile.hspvp = 0;
---	self.db.profile.pvekills = 0;
---	self.db.profile.pvestreak = 0;
---	self.profile.hspve = 0;
 	
 	kp:Print("Reset all PvP type counters.");
 end
