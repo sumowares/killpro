@@ -12,4 +12,7 @@
 
 embeds.xml
 
+libs\ParserLib\ParserLib.lua
+libs\ParserLib\optimizer-enUS.lua
+
 killpro.lua
